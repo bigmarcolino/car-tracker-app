@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.breakfun.cartracker.OptionsActivity"
+    tools:showIn="@layout/activity_options">
+
+    <TextView
+        android:text="GET Android"
+        android:layout_width="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/textView2"
+        android:textSize="18sp"
+        android:gravity="center_vertical|center_horizontal"
+        android:background="@color/cast_expanded_controller_ad_label_background_color"
+        android:layout_height="30dp" />
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentStart="true"
+        android:checkedButton="@+id/get0"
+        android:id="@+id/radioGroupGet"
+        android:paddingLeft="16dp">
+
+        <RadioButton
+            android:text="Por Demanda"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/get0"
+            android:layout_weight="1" />
+
+        <RadioButton
+            android:text="Único"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/get1"
+            android:layout_weight="1" />
+    </RadioGroup>
+
+    <TextView
+        android:text="Intervalo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView11"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:layout_alignTop="@+id/radioGroupGet"
+        android:layout_alignStart="@+id/intervalo" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="2"
+        android:id="@+id/intervalo"
+        android:layout_alignBottom="@+id/radioGroupGet"
+        android:layout_toEndOf="@+id/radioGroupGet"
+        android:layout_marginStart="73dp"
+        android:text="3"
+        android:textAlignment="center"
+        android:enabled="true" />
+
+    <TextView
+        android:text="segundos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView12"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:layout_marginStart="6dp"
+        android:layout_alignBaseline="@+id/intervalo"
+        android:layout_alignBottom="@+id/intervalo"
+        android:layout_toEndOf="@+id/textView11" />
+
+    <TextView
+        android:text="Rajada"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:id="@+id/textView10"
+        android:textSize="18sp"
+        android:gravity="center_vertical|center_horizontal"
+        android:background="@color/cast_expanded_controller_ad_label_background_color"
+        android:layout_marginTop="17dp"
+        android:layout_below="@+id/radioGroupGet"
+        android:layout_alignParentStart="true" />
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/radioGroupRajada"
+        android:layout_below="@+id/textView10"
+        android:layout_alignParentStart="true"
+        android:checkedButton="@+id/rajada1"
+        android:layout_marginTop="13dp"
+        android:paddingLeft="16dp">
+
+        <RadioButton
+            android:text="Desativada"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rajada0"
+            android:layout_weight="1" />
+
+        <RadioButton
+            android:text="Ativada"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rajada1"
+            android:layout_weight="1" />
+    </RadioGroup>
+
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:clickable="true"
+        app:srcCompat="@color/colorPrimary"
+        android:src="@drawable/ic_launcher"
+        android:id="@+id/fabRastrear"
+        android:onClick="openMap"
+        android:layout_marginBottom="96dp"
+        app:backgroundTint="@color/colorPrimary"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+</RelativeLayout>
