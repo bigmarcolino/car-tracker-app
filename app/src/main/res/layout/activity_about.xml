@@ -55,7 +55,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="2017"
+        android:text="2018"
         android:id="@+id/textView7"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"

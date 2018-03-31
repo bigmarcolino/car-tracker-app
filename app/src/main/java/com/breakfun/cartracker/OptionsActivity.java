@@ -16,9 +16,9 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 public class OptionsActivity extends AppCompatActivity {
-    RadioGroup rgGet, rgRajada;
-    String getOption, rajadaOption;
-    EditText intervalo;
+    RadioGroup rg_get, rg_burst;
+    String get_option, burst_option;
+    EditText interval;
     FloatingActionButton fab;
 
     @Override
@@ -28,20 +28,18 @@ public class OptionsActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        rgGet = (RadioGroup) findViewById(R.id.radioGroupGet);
-        rgRajada = (RadioGroup) findViewById(R.id.radioGroupRajada);
+        rg_get = (RadioGroup) findViewById(R.id.radioGroupGet);
+        rg_burst = (RadioGroup) findViewById(R.id.radioGroupRajada);
         fab = (FloatingActionButton) findViewById(R.id.fabRastrear);
 
-        intervalo = (EditText) findViewById(R.id.intervalo);
-        intervalo.setFilters(new InputFilter[]{ new InputFilterMinMax("1", "15") });
-        intervalo.addTextChangedListener(new TextWatcher() {
+        interval = (EditText) findViewById(R.id.intervalo);
+        interval.setFilters(new InputFilter[]{ new InputFilterMinMax("1", "15") });
+        interval.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
-                if(intervalo.getText().length() == 0) {
+                if(interval.getText().length() == 0)
                     fab.setVisibility(View.GONE);
-                }
-                else {
+                else
                     fab.setVisibility(View.VISIBLE);
-                }
             }
 
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -50,16 +48,16 @@ public class OptionsActivity extends AppCompatActivity {
     }
 
     public void openMap(View view) {
-        Intent mainIntent = new Intent(OptionsActivity.this, MapsActivity.class);
+        Intent main_intent = new Intent(OptionsActivity.this, MapsActivity.class);
 
-        getOption = ((RadioButton)findViewById(rgGet.getCheckedRadioButtonId())).getText().toString();
-        rajadaOption = ((RadioButton)findViewById(rgRajada.getCheckedRadioButtonId())).getText().toString();
+        get_option = ((RadioButton)findViewById(rg_get.getCheckedRadioButtonId())).getText().toString();
+        burst_option = ((RadioButton)findViewById(rg_burst.getCheckedRadioButtonId())).getText().toString();
 
-        mainIntent.putExtra("getOption", getOption);
-        mainIntent.putExtra("rajadaOption", rajadaOption);
-        mainIntent.putExtra("intervalo", intervalo.getText().toString());
+        main_intent.putExtra("get_option", get_option);
+        main_intent.putExtra("burst_option", burst_option);
+        main_intent.putExtra("interval", interval.getText().toString());
 
-        OptionsActivity.this.startActivity(mainIntent);
+        OptionsActivity.this.startActivity(main_intent);
     }
 
     @Override
@@ -72,9 +70,9 @@ public class OptionsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_about) {
-            Intent mainIntent = new Intent(OptionsActivity.this, AboutActivity.class);
-            OptionsActivity.this.startActivity(mainIntent);
+        if(id == R.id.action_about) {
+            Intent main_intent = new Intent(OptionsActivity.this, AboutActivity.class);
+            OptionsActivity.this.startActivity(main_intent);
         }
 
         return super.onOptionsItemSelected(item);

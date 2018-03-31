@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -14,6 +15,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -25,19 +27,24 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, ConnectivityReceiver.ConnectivityReceiverListener {
-    private GoogleMap mMap;
+    private GoogleMap google_map;
     AsyncTask gc;
-    JSONObject json, coordinates;
-    JSONArray jsonArray;
+    JSONObject json;
+    JSONArray json_array;
     String time = null;
     double lat, lng;
-    LatLng ponto;
+    LatLng point;
     Snackbar snackbar;
-    boolean isConnected;
-    int intervalo;
-    String rajadaOption, getOption;
+    boolean is_connected;
+    int interval;
+    String burst_option, get_option;
     private final String URL_READY_RECEIVE = "https://tracker.gobbi.info/readyToReceive/arduino";
     private final String URL_STOP_RECEIVE = "https://tracker.gobbi.info/stopReceiving/arduino";
     private final String URL_POSITION = "https://tracker.gobbi.info/position/arduino";
@@ -47,20 +54,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment)getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
-        intervalo = Integer.parseInt(getIntent().getStringExtra("intervalo")) * 1000;
-        getOption = getIntent().getStringExtra("getOption");
-        rajadaOption = getIntent().getStringExtra("rajadaOption");
+        interval = Integer.parseInt(getIntent().getStringExtra("interval")) * 1000;
+        get_option = getIntent().getStringExtra("get_option");
+        burst_option = getIntent().getStringExtra("burst_option");
     }
 
     private class GetCoordinates extends AsyncTask<Void, Void, Void> {
         Context cont;
         RequestQueue queue;
-        String dataAux, data, hora;
+        String date_aux, date, hour;
         Boolean receive = false;
+        FileOutputStream fos;
+        Long ts;
 
         GetCoordinates(Context context) {
             cont = context;
@@ -69,71 +78,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected Void doInBackground(Void... voids) {
             queue = Volley.newRequestQueue(cont);
 
-            StringRequest receiveRequest = new StringRequest(Request.Method.GET, URL_READY_RECEIVE, new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
-                    try {
-                        json = new JSONObject(response);
+            try {
+                fos = openFileOutput("android_metrics.txt", Context.MODE_PRIVATE);
+            }
+            catch (IOException e) {}
 
-                        if(json.getInt("status") == 200) {
-                            receive = true;
-                        }
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Toast.makeText(getApplicationContext(), "GET 'Ready To Receive' não funcionou", Toast.LENGTH_LONG).show();
-                }
-            });
-            queue.add(receiveRequest);
-
-            while (!receive);
-
-            while(!isCancelled()) {
-                StringRequest positionRequest = new StringRequest(Request.Method.GET, URL_POSITION, new Response.Listener<String>() {
+            while(!isCancelled() && !receive) {
+                JsonObjectRequest receive_request = new JsonObjectRequest(Request.Method.GET, URL_READY_RECEIVE, null, new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(String response) {
+                    public void onResponse(JSONObject response) {
                         try {
-                            coordinates = new JSONObject(response);
-                            jsonArray = coordinates.getJSONArray("coordinates");
-
-                            if(jsonArray.length() > 0) {
-                                if(rajadaOption.equals("Ativada")) {
-                                    for (int i = 0; i < jsonArray.length(); i++) {
-                                        json = jsonArray.getJSONObject(i);
-
-                                        time = json.getString("time");
-                                        dataAux = time.split("T")[0];
-                                        data = dataAux.split("-")[2] + "/" + dataAux.split("-")[1] + "/" + dataAux.split("-")[0];
-                                        hora = time.split("T")[1].split("\\.")[0];
-
-                                        lat = ((double)Integer.parseInt(json.getString("latitude"))) / 1000000;
-                                        lng = ((double)Integer.parseInt(json.getString("longitude"))) / 1000000;
-
-                                        ponto = new LatLng(lat, lng);
-                                        mMap.addMarker(new MarkerOptions().position(ponto).title(data + ", às " + hora).icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
-                                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(ponto, 18));
-                                    }
-                                }
-                                else {
-                                    json = jsonArray.getJSONObject(jsonArray.length()-1);
-
-                                    time = json.getString("time");
-                                    dataAux = time.split("T")[0];
-                                    data = dataAux.split("-")[2] + "/" + dataAux.split("-")[1] + "/" + dataAux.split("-")[0];
-                                    hora = time.split("T")[1].split("\\.")[0];
-
-                                    lat = ((double)Integer.parseInt(json.getString("latitude"))) / 1000000;
-                                    lng = ((double)Integer.parseInt(json.getString("longitude"))) / 1000000;
-
-                                    ponto = new LatLng(lat, lng);
-                                    mMap.addMarker(new MarkerOptions().position(ponto).title(data + ", às " + hora).icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
-                                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(ponto, 18));
-                                }
+                            if(response.getInt("status") == 200) {
+                                receive = true;
+                                ts = System.currentTimeMillis()/1000;
+                                fos.write(ts.toString().getBytes());
                             }
                         }
                         catch (Exception e) {
@@ -143,18 +101,89 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getApplicationContext(), "GET 'Position' não funcionou", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "GET 'Ready To Receive' não funcionou", Toast.LENGTH_LONG).show();
                     }
                 });
 
-                queue.add(positionRequest);
+                if(receive)
+                    break;
+                else
+                    queue.add(receive_request);
 
                 try {
-                    Thread.sleep(intervalo);
-                } catch (InterruptedException e) {
+                    Thread.sleep(3000);
+                } catch(InterruptedException e) {
                     return null;
                 }
             }
+
+            while(!isCancelled()) {
+                JsonObjectRequest position_request = new JsonObjectRequest(Request.Method.GET, URL_POSITION, null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            json_array = response.getJSONArray("coordinates");
+
+                            if(json_array.length() > 0) {
+                                ts = System.currentTimeMillis()/1000;
+                                fos.write(ts.toString().getBytes());
+
+                                if(burst_option.equals("Ativada")) {
+                                    for(int i = 0; i < json_array.length(); i++) {
+                                        json = json_array.getJSONObject(i);
+
+                                        time = json.getString("time");
+                                        date_aux = time.split("T")[0];
+                                        date = date_aux.split("-")[2] + "/" + date_aux.split("-")[1] + "/" + date_aux.split("-")[0];
+                                        hour = time.split("T")[1].split("\\.")[0];
+
+                                        lat = ((double)Integer.parseInt(json.getString("latitude"))) / 1000000;
+                                        lng = ((double)Integer.parseInt(json.getString("longitude"))) / 1000000;
+
+                                        point = new LatLng(lat, lng);
+                                        google_map.addMarker(new MarkerOptions().position(point).title(date + ", às " + hour).snippet(lat + ", " + lng).icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
+                                        google_map.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 18));
+                                    }
+                                }
+                                else {
+                                    json = json_array.getJSONObject(json_array.length()-1);
+
+                                    time = json.getString("time");
+                                    date_aux = time.split("T")[0];
+                                    date = date_aux.split("-")[2] + "/" + date_aux.split("-")[1] + "/" + date_aux.split("-")[0];
+                                    hour = time.split("T")[1].split("\\.")[0];
+
+                                    lat = ((double)Integer.parseInt(json.getString("latitude"))) / 1000000;
+                                    lng = ((double)Integer.parseInt(json.getString("longitude"))) / 1000000;
+
+                                    point = new LatLng(lat, lng);
+                                    google_map.addMarker(new MarkerOptions().position(point).title(date + ", às " + hour).snippet(lat + ", " + lng).icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
+                                    google_map.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 18));
+                                }
+                            }
+                        }
+                        catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error){}
+                });
+
+                queue.add(position_request);
+
+                try {
+                    Thread.sleep(interval);
+                } catch(InterruptedException e) {
+                    return null;
+                }
+            }
+
+            try {
+                fos.close();
+            }
+            catch (IOException e) {}
 
             return null;
         }
@@ -162,7 +191,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+        google_map = googleMap;
         gc = new GetCoordinates(this).execute();
         snackbar = Snackbar.make(findViewById(R.id.map), "", Snackbar.LENGTH_INDEFINITE);
         checkConnection();
@@ -170,48 +199,60 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onDestroy() {
+        try {
+            FileInputStream fis = this.openFileInput("android_metrics.txt");
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader bufferedReader = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String line;
+
+            while ((line = bufferedReader.readLine()) != null)
+                sb.append(line);
+
+            Log.d("metricas", sb.toString());
+        } catch(Exception e) {}
+
         gc.cancel(true);
 
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest stopReceiveRequest = new StringRequest(Request.Method.GET, URL_STOP_RECEIVE, new Response.Listener<String>() {
+        StringRequest stop_receive_request = new StringRequest(Request.Method.GET, URL_STOP_RECEIVE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {}
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {}
         });
-        queue.add(stopReceiveRequest);
+        queue.add(stop_receive_request);
 
         try {
             Thread.sleep(1000);
-        } catch (InterruptedException e) {}
+        } catch(InterruptedException e) {}
 
         super.onDestroy();
     }
 
     private void checkConnection() {
-        isConnected = ConnectivityReceiver.isConnected();
-        showSnack(isConnected);
+        is_connected = ConnectivityReceiver.isConnected();
+        showSnack(is_connected);
     }
 
-    private void showSnack(boolean isConnected) {
+    private void showSnack(boolean is_connected) {
         String message;
         int color;
 
-        if (!isConnected) {
-            if(!gc.isCancelled()) {
+        if(!is_connected) {
+            if(!gc.isCancelled())
                 gc.cancel(true);
-            }
 
             message = "Sem conexão com a Internet";
             color = Color.WHITE;
             snackbar.setText(message);
-            View sbView = snackbar.getView();
-            TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
-            textView.setTextColor(color);
+            View sb_view = snackbar.getView();
+            TextView text_view = (TextView)sb_view.findViewById(android.support.design.R.id.snackbar_text);
+            text_view.setTextColor(color);
             snackbar.show();
         }
-        else if(snackbar.isShown()){
+        else if(snackbar.isShown()) {
             gc = new GetCoordinates(this).execute();
             snackbar.dismiss();
             snackbar = Snackbar.make(findViewById(R.id.map), "", Snackbar.LENGTH_INDEFINITE);
@@ -225,7 +266,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onNetworkConnectionChanged(boolean isConnected) {
-        showSnack(isConnected);
+    public void onNetworkConnectionChanged(boolean is_connected) {
+        showSnack(is_connected);
     }
 }

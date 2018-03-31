@@ -22,9 +22,9 @@ public class SplashActivity extends Activity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-            Intent mainIntent = new Intent(SplashActivity.this, OptionsActivity.class);
-            SplashActivity.this.startActivity(mainIntent);
-            SplashActivity.this.finish();
+                Intent main_intent = new Intent(SplashActivity.this, OptionsActivity.class);
+                SplashActivity.this.startActivity(main_intent);
+                SplashActivity.this.finish();
             }
         }, SPLASH_DISPLAY_LENGTH);
     }

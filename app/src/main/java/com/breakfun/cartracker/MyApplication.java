@@ -3,20 +3,20 @@ package com.breakfun.cartracker;
 import android.app.Application;
 
 public class MyApplication extends Application {
-    private static MyApplication mInstance;
+
+    private static MyApplication m_instance;
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        mInstance = this;
+        m_instance = this;
     }
 
     public static synchronized MyApplication getInstance() {
-        return mInstance;
+        return m_instance;
     }
 
     public void setConnectivityListener(ConnectivityReceiver.ConnectivityReceiverListener listener) {
-        ConnectivityReceiver.connectivityReceiverListener = listener;
+        ConnectivityReceiver.connectivity_receiver_listener = listener;
     }
 }

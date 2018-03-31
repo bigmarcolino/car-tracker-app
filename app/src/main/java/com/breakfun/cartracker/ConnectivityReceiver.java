@@ -8,7 +8,7 @@ import android.net.NetworkInfo;
 
 public class ConnectivityReceiver extends BroadcastReceiver {
 
-    public static ConnectivityReceiverListener connectivityReceiverListener;
+    public static ConnectivityReceiverListener connectivity_receiver_listener;
 
     public ConnectivityReceiver() {
         super();
@@ -17,18 +17,17 @@ public class ConnectivityReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent arg1) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        NetworkInfo active_network = cm.getActiveNetworkInfo();
+        boolean is_connected = active_network != null && active_network.isConnectedOrConnecting();
 
-        if (connectivityReceiverListener != null) {
-            connectivityReceiverListener.onNetworkConnectionChanged(isConnected);
-        }
+        if(connectivity_receiver_listener != null)
+            connectivity_receiver_listener.onNetworkConnectionChanged(is_connected);
     }
 
     public static boolean isConnected() {
         ConnectivityManager cm = (ConnectivityManager) MyApplication.getInstance().getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        NetworkInfo active_network = cm.getActiveNetworkInfo();
+        return active_network != null && active_network.isConnectedOrConnecting();
     }
 
     public interface ConnectivityReceiverListener {
