@@ -6,7 +6,6 @@ import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -27,11 +26,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, ConnectivityReceiver.ConnectivityReceiverListener {
     private GoogleMap google_map;
@@ -68,8 +62,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         RequestQueue queue;
         String date_aux, date, hour;
         Boolean receive = false;
-        FileOutputStream fos;
-        Long ts;
 
         GetCoordinates(Context context) {
             cont = context;
@@ -78,21 +70,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected Void doInBackground(Void... voids) {
             queue = Volley.newRequestQueue(cont);
 
-            try {
-                fos = openFileOutput("android_metrics.txt", Context.MODE_PRIVATE);
-            }
-            catch (IOException e) {}
-
             while(!isCancelled() && !receive) {
                 JsonObjectRequest receive_request = new JsonObjectRequest(Request.Method.GET, URL_READY_RECEIVE, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            if(response.getInt("status") == 200) {
+                            if(response.getInt("status") == 200)
                                 receive = true;
-                                ts = System.currentTimeMillis()/1000;
-                                fos.write(ts.toString().getBytes());
-                            }
                         }
                         catch (Exception e) {
                             e.printStackTrace();
@@ -111,7 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     queue.add(receive_request);
 
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(interval);
                 } catch(InterruptedException e) {
                     return null;
                 }
@@ -125,9 +109,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             json_array = response.getJSONArray("coordinates");
 
                             if(json_array.length() > 0) {
-                                ts = System.currentTimeMillis()/1000;
-                                fos.write(ts.toString().getBytes());
-
                                 if(burst_option.equals("Ativada")) {
                                     for(int i = 0; i < json_array.length(); i++) {
                                         json = json_array.getJSONObject(i);
@@ -180,11 +161,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
 
-            try {
-                fos.close();
-            }
-            catch (IOException e) {}
-
             return null;
         }
     }
@@ -199,19 +175,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onDestroy() {
-        try {
-            FileInputStream fis = this.openFileInput("android_metrics.txt");
-            InputStreamReader isr = new InputStreamReader(fis);
-            BufferedReader bufferedReader = new BufferedReader(isr);
-            StringBuilder sb = new StringBuilder();
-            String line;
-
-            while ((line = bufferedReader.readLine()) != null)
-                sb.append(line);
-
-            Log.d("metricas", sb.toString());
-        } catch(Exception e) {}
-
         gc.cancel(true);
 
         RequestQueue queue = Volley.newRequestQueue(this);
